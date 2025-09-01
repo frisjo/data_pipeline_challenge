@@ -1,1 +1,14 @@
-
+services:     
+  postgres:       
+    image: postgres:latest        
+    container_name: starwars_db       
+    environment:         
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password         
+      POSTGRES_DB: swapi       
+    ports:         
+      - "5432:5432"       
+    volumes:         
+      - pg_data:/var/lib/postgresql/data   
+volumes:     
+  pg_data:
