@@ -9,6 +9,7 @@ services:
       POSTGRES_DB: swapi
     ports:
       - "5432:5432"
+    # Saves database locally
     volumes:
       - pg_data:/var/lib/postgresql/data
 volumes:    

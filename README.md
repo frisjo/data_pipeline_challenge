@@ -1,14 +1,15 @@
 # data_pipeline_challenge
 
-This repository contains files to build a data pipeline for Starwars data.
+This repository contains files to build a data pipeline for retrieving and storing Starwars data from SWAPI to a PostgresSQL database.
 
-docker-compose.yml: file that spins up the PostgreSQL server
-retrieve_datapy: a Python script that fetches data from SWAPI and stores it into the PostgreSQL database 
+Files in repository:
+* automatic_data_collection.py: python script that creates a task in Windows Task Scheduler, for automatic daily data collection
+* docker-compose.yml: file that spins up the PostgreSQL server
+* requirements.txt: contains all dependencies needed for the project
+* retrieve_data.py: a Python script that fetches data from SWAPI and stores it into the PostgreSQL database
+* run_project: file to run to set up project - the script spins up the PostgreSQL server and the swapi database, it collects data from swapi and adds it to the characters table, the script also creates the automatic data collection taks in Windows Task Scheduler
 
-To start the database:
-1. Clone the repository.
-2. Install Docker Desktop (if not installed).
-3. Wihtin the repository, where the docker-compose.yml is located run following command: docker-compose up -d
-This is to create and start the container.
-4. Run the retrieve_data.py script to fetch character data from SWAPI. This scripts creates a table in the swapi database in the PostgresSQL container and fills the table with the character data.
-
+Set up the project:
+1. Clone repository
+2. Download docker desktop
+3. In the directory where the repo is located run command: pyhton run_project.py

@@ -4,7 +4,7 @@ import psycopg2 # PostgreSQL database adapter for Python
 # Function to get data from SWAPI
 def get_SWAPI_data(url):
     response = requests.get(url)
-    return response.json()
+    return response
 
 # Connect to PostgreSQL, swapi db
 def connect_to_db():
@@ -19,32 +19,43 @@ def connect_to_db():
 
 # Create a character table in the swapi db
 def create_table(cur, attributes):
-    # remove existing character table, in case of changed attributes 
+    # Remove existing character table, in case of changed attributes 
     cur.execute("DROP TABLE IF EXISTS characters")
-    columns = ", ".join([f"{attr} TEXT" for attr in attributes])
+    # Create character table with the specified attributes 
+    columns = ", ".join([f"{attr} TEXT" for attr in attributes]) # Change TEXT to other data types if needed (type(attr))?
+    # Create 'character' table if not exists, add primary key column + the attributes
     query = f"""
         CREATE TABLE IF NOT EXISTS characters (
             id SERIAL PRIMARY KEY,
             {columns}
         )
     """
-    cur.execute(query)
+    cur.execute(query) # Excecute SQL command
 
 # Fill character table with data from SWAPI
-def fill_table(data, attributes, cur):
-    characters = data['results']
-    columns = ", ".join([f"{attr}" for attr in attributes])
-    # print("columns", columns)
-    for character in characters:
-        values = tuple(character[attr] for attr in attributes)
-        # Since number of attributes can vary, create placeholders dynamically
-        placeholders = ", ".join(["%s"] * len(attributes))
-        # print("values", values)
-        # print("placeholders", placeholders)
-        cur.execute(
-            f"INSERT INTO characters ({columns}) VALUES ({placeholders})",
-            values
-        )
+def fill_table(response, attributes, cur):
+    # Loop trough all pages of data
+    while response.status_code == 200:
+        data = response.json()
+        characters = data['results']
+        columns = ", ".join([f"{attr}" for attr in attributes])
+        # print("columns", columns)
+        for character in characters:
+            values = tuple(character[attr] for attr in attributes)
+            # Since number of attributes can vary, create placeholders dynamically
+            placeholders = ", ".join(["%s"] * len(attributes))
+            # print("values", values)
+            # print("placeholders", placeholders)
+            cur.execute(
+                f"INSERT INTO characters ({columns}) VALUES ({placeholders})",
+                values
+            )
+        # Break loop at last page
+        if data['next'] == None:
+            break
+
+        # Get response for next page
+        response = get_SWAPI_data(data['next'])
 
 # Connect, create table, and fill table 
 def data_to_db(data, attributes):
@@ -63,8 +74,9 @@ def data_to_db(data, attributes):
 
     # Check content of character table in db
     # Query and print all rows
-    cur.execute("SELECT * FROM characters")
-    rows = cur.fetchall()
+    cur.execute("SELECT * FROM characters") # * retrieves all columns from specified table
+    rows = cur.fetchall() # fetchall(): cursor method that retrieves all rows of the query
+    print("Following characters and attributes can be found in the characters table:")
     for row in rows:
         print(row)
 
@@ -77,4 +89,3 @@ data = get_SWAPI_data("https://swapi.py4e.com/api/people/")
 # Specify which attributes of the characters to store in table
 attributes = ['name', 'height', 'mass', "eye_color"]
 data_to_db(data, attributes)
-
